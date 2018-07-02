@@ -11,44 +11,47 @@ const GLib = imports.gi.GLib;
 //const Gtk = imports.gi.Gtk;
 
 let binanceURL = "https://api.binance.com/api/v3/ticker/price";
-let coinConversion = "ADABTC";
+let coinConversion = [];
+let settingFixed = [];
 let _httpSession;
 
 const helloWorldIndicator = new Lang.Class({
   Name: 'helloWorldIndicator', Extends: PanelMenu.Button,
 
   _init: function (){
-    this.parent(0.0, "Hello World Indicator", false);
+    this.parent(0.0, "Cryptocurrency Indicator", false);
     this.buttonText = new St.Label({text: ("Loading...")});
     this.actor.add_actor(this.buttonText);
 
-    //this.menu.addMenuItem(new PopupMenu.PopupBaseMenuItem(""));
-
     this._readSetingsFile();
     this._refresh();
-    global.log("RM_LOG: FLAG_03");
+    //global.log("RM_LOG: FLAG_03");
   },
 
   _readSetingsFile: function(){
     let userName = GLib.spawn_command_line_sync("id -u -n")[1].toString().replace('\n', '');
-    let settingsData = JSON.parse(GLib.spawn_command_line_sync("cat /home/"+userName+"/.local/share/gnome-shell/extensions/ricardo@earth.com/settings.conf")[1].toString());//.split('\n');
+    //global.log(GLib.spawn_command_line_sync("cat /home/"+userName+"/.local/share/gnome-shell/extensions/cryptoTicker@Ricx8/settings.conf")[1].toString());
+    let settingsData = JSON.parse(GLib.spawn_command_line_sync("cat /home/"+userName+"/.local/share/gnome-shell/extensions/cryptoTicker@Ricx8/settings.conf")[1].toString());//.split('\n');
 
+    let line;
     for (line=0; line<settingsData.length; line++){
-      var currentCoin = settingsData[line]["coin"];
+      let currentCoin = settingsData[line]["coin"];
+      let currentFixVal = settingsData[line]["toFixed"];
 
-      if (line == 0){
+      /*if (line == 0){
         coinConversion = currentCoin;
-      }
-      else{
+      }*/
+      if (line > 0){
         this.menu.addMenuItem(new PopupMenu.PopupSwitchMenuItem(currentCoin, true));
       }
 
+      coinConversion.push(currentCoin);
+      settingFixed.push(currentFixVal);
     }
 
   },
 
   _refresh: function () {
-    global.log("RM_LOG: FLAG_01");
     this._getDataFromBinance(this._refreshUI);
     this._removeTimeout();
     this._timeout = Mainloop.timeout_add_seconds(10, Lang.bind(this, this._refresh));
@@ -57,7 +60,7 @@ const helloWorldIndicator = new Lang.Class({
 
   _getDataFromBinance: function () {
     let params = {
-      symbol: coinConversion
+      //symbol: coinConversion[0]
     };
 
     _httpSession = new Soup.Session();
@@ -73,8 +76,29 @@ const helloWorldIndicator = new Lang.Class({
   },
 
   _refreshUI: function (data) {
+    let listOfUIs = this.menu._getMenuItems();
     //global.log(data.toSource());
-    this.buttonText.set_text(data["symbol"]+"::"+parseFloat(data["price"]).toFixed(2));
+    //this.buttonText.set_text(data["symbol"]+"::"+parseFloat(data["price"]).toFixed(settingFixed[0]));
+    let i;
+    for (i=0; i<data.length; i++){
+      //global.log("RM-LOG: "+data[i]["symbol"]+"/"+data[i]["price"]);
+      if (coinConversion[0] == data[i]["symbol"]){
+        this.buttonText.set_text(data[i]["symbol"]+"::"+parseFloat(data[i]["price"]).toFixed(settingFixed[0]));
+      }
+      else{
+        let nUI;
+        for (nUI=0; nUI<listOfUIs.length; nUI++){
+          if (coinConversion[nUI+1] == data[i]["symbol"]){
+            let tmpCurrentLabel;
+
+            if (settingFixed[nUI+1] == "default") tmpCurrentLabel = data[i]["symbol"]+"::"+parseFloat(data[i]["price"]);
+            else tmpCurrentLabel = data[i]["symbol"]+"::"+parseFloat(data[i]["price"]).toFixed(settingFixed[nUI+1]);
+
+            listOfUIs[nUI].setStatus(tmpCurrentLabel);
+          }
+        }
+      }
+    }
   },
 
   _removeTimeout: function () {

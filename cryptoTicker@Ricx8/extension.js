@@ -1,3 +1,22 @@
+// Copyright (c) 2018 Ricardo Marques
+//
+// GNU GENERAL PUBLIC LICENSE
+//    Version 2, June 1991
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
 const St = imports.gi.St;
 const Main = imports.ui.main;
 const Soup = imports.gi.Soup;
@@ -42,7 +61,8 @@ const helloWorldIndicator = new Lang.Class({
         coinConversion = currentCoin;
       }*/
       if (line > 0){
-        this.menu.addMenuItem(new PopupMenu.PopupSwitchMenuItem(currentCoin, true));
+        //this.menu.addMenuItem(new PopupMenu.PopupSwitchMenuItem(currentCoin, true));
+        this.menu.addMenuItem(new PopupMenu.PopupMenuItem(currentCoin));
       }
 
       coinConversion.push(currentCoin);
@@ -94,7 +114,7 @@ const helloWorldIndicator = new Lang.Class({
             if (settingFixed[nUI+1] == "default") tmpCurrentLabel = data[i]["symbol"]+"::"+parseFloat(data[i]["price"]);
             else tmpCurrentLabel = data[i]["symbol"]+"::"+parseFloat(data[i]["price"]).toFixed(settingFixed[nUI+1]);
 
-            listOfUIs[nUI].setStatus(tmpCurrentLabel);
+            listOfUIs[nUI].label.set_text(tmpCurrentLabel);
           }
         }
       }
@@ -119,24 +139,7 @@ const helloWorldIndicator = new Lang.Class({
 
     this.menu.removeAll();
   }
-
-    //Add first menu item, with action
-    /*this.menu.addAction("First Menu Item", function(event) {
-      Main.Util.trySpawnCommandLine('xdg-open https://github.com/Ricx8');
-    });
-
-    //Add second menu item, with no action
-    this.menu.addMenuItem(new PopupMenu.PopupMenuItem("Second Menu Item"));
-
-    //Add a separator
-    this.menu.addMenuItem(new PopupMenu.PopupSeparatorMenuItem());
-
-    this.menu.addMenuItem(new PopupMenu.PopupSwitchMenuItem("Hello", true));
-
-    //Add a submenu as the 3rd item, and submenu item with no action
-    this.MySubMenu = new PopupMenu.PopupSubMenuMenuItem("SubMenu");
-    this.menu.addMenuItem(this.MySubMenu);
-    this.MySubMenu.menu.addMenuItem(new PopupMenu.PopupMenuItem("submenu value"));*/
+  
 });
 
 let twMenu;

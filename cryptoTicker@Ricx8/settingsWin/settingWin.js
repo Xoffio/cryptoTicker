@@ -22,7 +22,7 @@ class Application {
           border_width: 10,
           title: "CryptoTicker"
         });
-        this._window.set_default_size(400, 200);
+        this._window.set_default_size(400, 400);
 
         // Create a Grid
         this.mainGrid = new Gtk.Grid ({
@@ -43,9 +43,33 @@ class Application {
         this.fixVLabel = new Gtk.Label({ label: "Fix value",  margin_left: 50});
         this.fixVEntry = Gtk.SpinButton.new_with_range (0, 10, 1);
 
+        this.addButton = new Gtk.Button ({label: "Add ticker"});
+        this.removeButton = new Gtk.Button ({label: "-"});
+        this.SaveButton = new Gtk.Button ({label: "Save changes"});
+
+
+        // Create the underlying liststore for the tickers
+        this.tickerListListStore = new Gtk.ListStore ();
+        this.tickerListListStore.set_column_types ([
+          GObject.TYPE_STRING
+        ]);
+
+        // Create the treeview
+        this.tickerListUI = new Gtk.TreeView ({
+          expand: true,
+          model: this.tickerListListStore
+        });
+
+        let tickerCol = new Gtk.TreeViewColumn ({ title: "Ticker" });
+
         this.mainGrid.attach(this.tickerPullDowm,  0, 0, 1, 1);
         this.mainGrid.attach(this.fixVLabel, 1, 0, 1, 1);
         this.mainGrid.attach(this.fixVEntry, 2, 0, 1, 1);
+        this.mainGrid.attach(this.addButton, 3, 0, 1, 1);
+        this.mainGrid.attach(this.tickerListUI, 0, 1, 4, 1);
+        this.mainGrid.attach(this.removeButton, 0, 2, 1, 1);
+        this.mainGrid.attach(this.SaveButton, 3, 2, 1, 1);
+
 
         this._window.add(this.mainGrid)
 

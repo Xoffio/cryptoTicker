@@ -3,6 +3,8 @@
 imports.gi.versions.Gtk = '3.0'
 const Gtk = imports.gi.Gtk;
 const GObject = imports.gi.GObject;
+const GLib = imports.gi.GLib;
+const gio = imports.gi.Gio;
 
 class Application {
 
@@ -17,6 +19,9 @@ class Application {
 
   //create the UI
   _buildUI() {
+    //
+    this.treeTickerList = [];
+
     this._window = new Gtk.ApplicationWindow({
       application: this.application,
       border_width: 10,
@@ -92,6 +97,7 @@ class Application {
     this.addButton.connect("clicked", this._addTicker.bind(this));
 
     this.removeButton.connect("clicked", this._removeTicker.bind(this));
+    this.saveButton.connect("clicked", this._saveChanges.bind(this));
   }
 
   //handler for 'activate' signal
@@ -110,18 +116,55 @@ class Application {
     let newFixVal = this.fixVEntry.get_text();
     let newTicker = this.tickerPullDowm.get_active_text();
 
-    this.tickerListStore.set(this.tickerListStore.append(), [0, 1], [newTicker, newFixVal]);
-  }
+    let tickerInList = false;
+    for(let i=0; i<this.treeTickerList.length; i++){
+      if (this.treeTickerList[i]["coin"] == newTicker) tickerInList = true;
+    }
 
-  //
-  _removeTicker(){
-    let tickerSelected = this.tickerListUI.get_selection().get_selected()[0];
-    if (tickerSelected){
-      let iter = this.tickerListUI.get_selection().get_selected()[2];
-      this.tickerListStore.remove(iter);
-      //print(this.tickerListStore.get_value(iter, 0));
+    if (!(tickerInList)){
+      let tmpObj = new Object();
+      tmpObj["coin"] = newTicker;
+      tmpObj["toFixed"] = newFixVal;
+
+      if (newFixVal == "0") tmpObj["toFixed"] = "default";
+
+      this.treeTickerList.push( tmpObj );
+
+      this.tickerListStore.set(this.tickerListStore.append(), [0, 1], [newTicker, newFixVal]);
     }
   }
+
+  // Function that will remove ticker from the list.
+  _removeTicker(){
+    let tickerSelected = this.tickerListUI.get_selection().get_selected()[0];
+
+    if (tickerSelected){
+      let iter = this.tickerListUI.get_selection().get_selected()[2];
+
+      let tmpObj = new Object();
+      tmpObj["coin"] = this.tickerListStore.get_value (iter, 0)
+      tmpObj["toFixed"] = this.tickerListStore.get_value (iter, 1);
+
+      let i =0;
+      while (i<this.treeTickerList.length){
+        if (this.treeTickerList[i]["coin"] == tmpObj["coin"]) {
+          this.treeTickerList.splice(i, 1);
+          break;
+        }
+
+        i++;
+      }
+
+      this.tickerListStore.remove(iter);
+    }
+  }
+
+  _saveChanges(){
+    let stringSettings = JSON.stringify(this.treeTickerList);
+
+    GLib.spawn_command_line_sync("./writeSettings.sh "+stringSettings);
+  }
+
 };
 
 //run the application

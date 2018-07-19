@@ -5,6 +5,8 @@ const Gtk = imports.gi.Gtk;
 const GObject = imports.gi.GObject;
 const GLib = imports.gi.GLib;
 const gio = imports.gi.Gio;
+const Soup = imports.gi.Soup;
+const Lang = imports.lang;
 
 class Application {
 
@@ -38,7 +40,7 @@ class Application {
 
     // Make the pulldowm for all the coins
     this.tickerPullDowm = new Gtk.ComboBoxText();
-    let tickerList = ["BTCUSDT", "BTCADA"];
+    let tickerList = this._getTickerList();
     for (let i=0; i<tickerList.length; i++){
       this.tickerPullDowm.append_text(tickerList[i]);
     }
@@ -67,11 +69,11 @@ class Application {
       model: this.tickerListStore
     });
 
-    let tickerCol = new Gtk.TreeViewColumn ({ title: "Ticker" });
-    let fixValCol = new Gtk.TreeViewColumn ({ title: "Fix val" });
+    let tickerCol = new Gtk.TreeViewColumn({ title: "Ticker" });
+    let fixValCol = new Gtk.TreeViewColumn({ title: "Fix val" });
 
     // Create a cell renderer for normal text
-    let normal = new Gtk.CellRendererText ();
+    let normal = new Gtk.CellRendererText();
 
     // Pack the cell renderers into the columns
     tickerCol.pack_start (normal, true);
@@ -113,26 +115,45 @@ class Application {
     this._buildUI();
   }
 
+  _getTickerList(){
+    let sessionSync = new Soup.SessionSync();
+    let msg = Soup.Message.new('GET', 'https://api.binance.com/api/v3/ticker/price');
+    sessionSync.send_message(msg);
+
+    let tickers = JSON.parse(msg.response_body.data);
+    let rTickers = [];
+    for (let i=0; i<tickers.length; i++){
+      rTickers.push(tickers[i]["symbol"]);
+    }
+
+    return(rTickers);
+  }
+
   _initTickerList(){
     let userName = GLib.spawn_command_line_sync("id -u -n")[1].toString().replace('\n', '');
     let settingsData = JSON.parse(GLib.spawn_command_line_sync("cat /home/"+userName+"/.local/share/gnome-shell/extensions/cryptoTicker@Ricx8/settings.conf")[1].toString() );
 
     for(let i=0; i<settingsData.length; i++){
+      print(settingsData[i]["coin"]);
       this._addTicker( settingsData[i]["coin"], settingsData[i]["toFixed"]);
     }
   }
 
   // Funtion that add ticker to the list
   _addTicker(newTicker=null, newFixVal=null){
-    if ((newTicker != null) || (newFixVal != null)){
+    if ((newTicker == null) || (newFixVal == null)){
       newFixVal = this.fixVEntry.get_text();
       newTicker = this.tickerPullDowm.get_active_text();
     }
 
-
     let tickerInList = false;
+    print(newTicker);
     for(let i=0; i<this.treeTickerList.length; i++){
-      if (this.treeTickerList[i]["coin"] == newTicker) tickerInList = true;
+      if (this.treeTickerList[i]["coin"] == newTicker){
+        tickerInList = true;
+        break;
+      }
+      print(this.treeTickerList[i]["coin"]);
     }
 
     if (!(tickerInList)){

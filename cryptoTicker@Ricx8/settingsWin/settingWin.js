@@ -59,6 +59,8 @@ class Application {
       GObject.TYPE_STRING
     ]);
 
+    this._initTickerList();
+
     // Create the treeview
     this.tickerListUI = new Gtk.TreeView({
       expand: true,
@@ -111,10 +113,22 @@ class Application {
     this._buildUI();
   }
 
+  _initTickerList(){
+    let userName = GLib.spawn_command_line_sync("id -u -n")[1].toString().replace('\n', '');
+    let settingsData = JSON.parse(GLib.spawn_command_line_sync("cat /home/"+userName+"/.local/share/gnome-shell/extensions/cryptoTicker@Ricx8/settings.conf")[1].toString() );
+
+    for(let i=0; i<settingsData.length; i++){
+      this._addTicker( settingsData[i]["coin"], settingsData[i]["toFixed"]);
+    }
+  }
+
   // Funtion that add ticker to the list
-  _addTicker(){
-    let newFixVal = this.fixVEntry.get_text();
-    let newTicker = this.tickerPullDowm.get_active_text();
+  _addTicker(newTicker=null, newFixVal=null){
+    if ((newTicker != null) || (newFixVal != null)){
+      newFixVal = this.fixVEntry.get_text();
+      newTicker = this.tickerPullDowm.get_active_text();
+    }
+
 
     let tickerInList = false;
     for(let i=0; i<this.treeTickerList.length; i++){
@@ -160,7 +174,8 @@ class Application {
   }
 
   _saveChanges(){
-    let stringSettings = JSON.stringify(this.treeTickerList);
+    let stringSettings = JSON.stringify(this.treeTickerList).replace(/"/g, "\\\"");
+    print(stringSettings);
 
     GLib.spawn_command_line_sync("./writeSettings.sh "+stringSettings);
   }

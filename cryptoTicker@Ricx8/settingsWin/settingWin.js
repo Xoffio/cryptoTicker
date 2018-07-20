@@ -23,6 +23,7 @@ class Application {
   _buildUI() {
     //
     this.treeTickerList = [];
+    this.lastIterSelected = [null, null];
 
     this._window = new Gtk.ApplicationWindow({
       application: this.application,
@@ -50,8 +51,9 @@ class Application {
     this.fixVLabel = new Gtk.Label({ label: "Fix value",  margin_left: 50});
     this.fixVEntry = Gtk.SpinButton.new_with_range (0, 10, 1);
 
-    this.addButton = new Gtk.Button ({label: "Add ticker"});
-    this.removeButton = new Gtk.Button ({label: "-"});
+    this.addButton = new Gtk.Button({label: "Add ticker"});
+    this.removeButton = new Gtk.Button({label: "-"});
+    this.setPanelTickerButton = new Gtk.Button({label: "Set to panel"});
     this.saveButton = new Gtk.Button ({label: "Save changes"});
 
     // Create the underlying liststore for the tickers
@@ -93,6 +95,7 @@ class Application {
     this.mainGrid.attach(this.addButton, 3, 0, 1, 1);
     this.mainGrid.attach(this.tickerListUI, 0, 1, 4, 1);
     this.mainGrid.attach(this.removeButton, 0, 2, 1, 1);
+    this.mainGrid.attach(this.setPanelTickerButton, 1, 2, 1, 1);
     this.mainGrid.attach(this.saveButton, 3, 2, 1, 1);
 
     this._window.add(this.mainGrid)
@@ -101,6 +104,7 @@ class Application {
     this.addButton.connect("clicked", this._addTicker.bind(this));
 
     this.removeButton.connect("clicked", this._removeTicker.bind(this));
+    this.setPanelTickerButton.connect("clicked", this._setPanelTicker.bind(this));
     this.saveButton.connect("clicked", this._saveChanges.bind(this));
   }
 
@@ -134,7 +138,6 @@ class Application {
     let settingsData = JSON.parse(GLib.spawn_command_line_sync("cat /home/"+userName+"/.local/share/gnome-shell/extensions/cryptoTicker@Ricx8/settings.conf")[1].toString() );
 
     for(let i=0; i<settingsData.length; i++){
-      print(settingsData[i]["coin"]);
       this._addTicker( settingsData[i]["coin"], settingsData[i]["toFixed"]);
     }
   }
@@ -147,13 +150,11 @@ class Application {
     }
 
     let tickerInList = false;
-    print(newTicker);
     for(let i=0; i<this.treeTickerList.length; i++){
       if (this.treeTickerList[i]["coin"] == newTicker){
         tickerInList = true;
         break;
       }
-      print(this.treeTickerList[i]["coin"]);
     }
 
     if (!(tickerInList)){
@@ -194,7 +195,30 @@ class Application {
     }
   }
 
+  _setPanelTicker(){
+    let iter = this.tickerListUI.get_selection().get_selected()[2];
+    let tickerSelected = "* "+this.tickerListStore.get_value (iter, 0)
+
+    // If the last iter selected is not empty then delete the '*' mark from the last iter
+    if (this.lastIterSelected[0] != null){
+      this.tickerListStore.set(this.lastIterSelected[0], [0], [this.lastIterSelected[1]]);
+    }
+
+    // Save th current iter as last iter so I can undo the '*' mark in the future.
+    this.lastIterSelected[0] = iter;
+    this.lastIterSelected[1] = this.tickerListStore.get_value (iter, 0);
+
+    // Set the '*' mark
+    this.tickerListStore.set(iter, [0], [tickerSelected]);
+  }
+
   _saveChanges(){
+    let removeFrom = this.lastIterSelected[1];
+    for (let i=0; i<this.treeTickerList.length; i++){
+      
+    }
+    print(filtered);
+
     let stringSettings = JSON.stringify(this.treeTickerList).replace(/"/g, "\\\"");
     print(stringSettings);
 

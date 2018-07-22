@@ -23,7 +23,7 @@ class Application {
   _buildUI() {
     //
     this.treeTickerList = [];
-    this.lastIterSelected = [null, null];
+    this.lastIterSelected = [null, null, null];
 
     this._window = new Gtk.ApplicationWindow({
       application: this.application,
@@ -99,6 +99,11 @@ class Application {
     this.mainGrid.attach(this.saveButton, 3, 2, 1, 1);
 
     this._window.add(this.mainGrid)
+
+    // Set the first item to be in the panel
+    /*
+      TODO
+    */
 
     // If I click The add button
     this.addButton.connect("clicked", this._addTicker.bind(this));
@@ -207,17 +212,31 @@ class Application {
     // Save th current iter as last iter so I can undo the '*' mark in the future.
     this.lastIterSelected[0] = iter;
     this.lastIterSelected[1] = this.tickerListStore.get_value (iter, 0);
+    this.lastIterSelected[2] = this.tickerListStore.get_value (iter, 1);
+    print("panelTicker: "+this.lastIterSelected[1]);
 
     // Set the '*' mark
     this.tickerListStore.set(iter, [0], [tickerSelected]);
   }
 
   _saveChanges(){
-    let removeFrom = this.lastIterSelected[1];
-    for (let i=0; i<this.treeTickerList.length; i++){
-      
+    if (this.lastIterSelected[0] != null){
+      for (let i=0; i<this.treeTickerList.length; i++){
+        if (this.treeTickerList[i]["coin"] == this.lastIterSelected[1] ) {
+          this.treeTickerList.splice(i, 1);
+          break;
+        }
+      }
+
+      // Add the panelTicker to the first possition
+      let tmpObj = new Object();
+      tmpObj["coin"] = this.lastIterSelected[1];
+      tmpObj["toFixed"] = this.lastIterSelected[2];
+
+      if (tmpObj["toFixed"] == "0") tmpObj["toFixed"] = "default";
+
+      this.treeTickerList.unshift( tmpObj );
     }
-    print(filtered);
 
     let stringSettings = JSON.stringify(this.treeTickerList).replace(/"/g, "\\\"");
     print(stringSettings);

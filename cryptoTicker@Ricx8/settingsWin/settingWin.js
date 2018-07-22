@@ -254,7 +254,10 @@ class Application {
     let stringSettings = JSON.stringify(this.treeTickerList).replace(/"/g, "\\\"");
     print(stringSettings);
 
-    GLib.spawn_command_line_sync("./writeSettings.sh "+stringSettings);
+    let userName = GLib.spawn_command_line_sync("id -u -n")[1].toString().replace('\n', '');
+    GLib.spawn_command_line_sync("/home/"+userName+"/.local/share/gnome-shell/extensions/cryptoTicker@Ricx8/settingsWin/writeSettings.sh "+stringSettings);
+    GLib.spawn_command_line_sync("busctl --user call org.gnome.Shell /org/gnome/Shell org.gnome.Shell Eval s 'Meta.restart(\"Restarting…\")'");
+    //GLib.spawn_command_line_sync("gnome-shell-extension-tool -r cryptoTicker@Ricx8");
   }
 
 };

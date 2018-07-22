@@ -183,7 +183,7 @@ class Application {
 
         this.treeTickerList.push( tmpObj );
 
-        this.tickerListStore.set(this.tickerListStore.append(), [0, 1], [newTicker, newFixVal]);
+        this.tickerListStore.set(this.tickerListStore.append(), [0, 1], [newTicker, tmpObj["toFixed"]]);
       }
     }
   }
@@ -256,8 +256,8 @@ class Application {
 
     let userName = GLib.spawn_command_line_sync("id -u -n")[1].toString().replace('\n', '');
     GLib.spawn_command_line_sync("/home/"+userName+"/.local/share/gnome-shell/extensions/cryptoTicker@Ricx8/settingsWin/writeSettings.sh "+stringSettings);
-    GLib.spawn_command_line_sync("busctl --user call org.gnome.Shell /org/gnome/Shell org.gnome.Shell Eval s 'Meta.restart(\"Restarting…\")'");
-    //GLib.spawn_command_line_sync("gnome-shell-extension-tool -r cryptoTicker@Ricx8");
+    //GLib.spawn_command_line_sync("busctl --user call org.gnome.Shell /org/gnome/Shell org.gnome.Shell Eval s 'Meta.restart(\"Restarting…\")'");
+    GLib.spawn_command_line_sync("gnome-shell-extension-tool -r cryptoTicker@Ricx8");
   }
 
 };

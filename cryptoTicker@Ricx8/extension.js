@@ -35,7 +35,6 @@ let settingFixed = [];
 let _httpSession;
 
 let userName = GLib.spawn_command_line_sync("id -u -n")[1].toString().replace('\n', '');
-let settingsData = JSON.parse(GLib.spawn_command_line_sync("cat /home/"+userName+"/.local/share/gnome-shell/extensions/cryptoTicker@Ricx8/settings.conf")[1].toString());//.split('\n');
 let declineIcon=gio.icon_new_for_string("/home/"+userName+"/.local/share/gnome-shell/extensions/cryptoTicker@Ricx8/icons/decline32.png");
 let growthIcon=gio.icon_new_for_string("/home/"+userName+"/.local/share/gnome-shell/extensions/cryptoTicker@Ricx8/icons/growth32.png");
 
@@ -49,6 +48,9 @@ const cryptoTicker = new Lang.Class({
     this.buttonText = new St.Label({text: ("Loading...")});
     this.actor.add_actor(this.buttonText);
 
+    coinConversion = [];
+    settingFixed = [];
+
     //this.actor.add_child(this.buttonIcon);
     //this.actor.add_child(this.buttonText);
     //this.actor.label_actor = this.buttonText;
@@ -59,6 +61,7 @@ const cryptoTicker = new Lang.Class({
   },
 
   _readSetingsFile: function(){
+    let settingsData = JSON.parse(GLib.spawn_command_line_sync("cat /home/"+userName+"/.local/share/gnome-shell/extensions/cryptoTicker@Ricx8/settings.conf")[1].toString());
     let line;
     for (line=0; line<settingsData.length; line++){
       let currentCoin = settingsData[line]["coin"];
@@ -81,22 +84,28 @@ const cryptoTicker = new Lang.Class({
   },
 
   _refresh: function () {
-    this._getTheCurrentPrices(this._refreshUI);
+    /*let listOfTickers = this._getTheCurrentPrices();
+    if (listOfTickers != -1){
+      this._refreshUI(listOfTickers);
+    }*/
+    this._getTheCurrentPrices();
     this._removeTimeout();
-    this._timeout = Mainloop.timeout_add_seconds(10, Lang.bind(this, this._refresh));
+    this._timeout = Mainloop.timeout_add_seconds(2, Lang.bind(this, this._refresh));
     return true;
   },
 
   // Get the current prices
   _getTheCurrentPrices: function () {
-    /*let sessionSync = new Soup.SessionSync();
+    /*let json = -1;
+    let sessionSync = new Soup.SessionSync();
     let msg = Soup.Message.new('GET', 'https://api.binance.com/api/v3/ticker/price');
     sessionSync.send_message(msg);
 
     if (msg.status_code == 200){
-
+      json = JSON.parse(msg.response_body.data);
     }
-    let tickers = JSON.parse(msg.response_body.data);*/
+
+    return(json);*/
 
 
     let binanceURL = "https://api.binance.com/api/v3/ticker/price";
@@ -203,5 +212,6 @@ function enable(){
 }
 
 function disable(){
+  twMenu.stop();
   twMenu.destroy();
 }

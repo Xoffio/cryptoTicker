@@ -1,17 +1,17 @@
 # CryptoTicker
 Crypto Ticker is a Gnome extension that get the current live price of a large number of ticker from Binance servers and show it in your panel.
 
+![CryptoTicker panel screenshot.](https://raw.githubusercontent.com/Ricx8/cryptoTicker/master/screenshots/screenshot116.png)
+
 ### How to install it
 1. Download or clone this repository
 2. Copy the folder 'cryptoTicker@Ricx8' to '~/.local/share/gnome-shell/extensions/'
 3. Go to Tweaks > Extensions and activate CryptoTicker
 
 ### How to use it
-Inside of the 'cryptoTicker@Ricx8' folder, there is the conf file call [settings.conf](cryptoTicker@Ricx8/settings.conf). This file is in JSON format and contains a list with all the ticker that you want to display. Every line has two values:
-- coin: ticker name.
-- toFixed: show N decimals
+Click Settings. This will open a window where you can add, remove or modify the tickers.
 
-note: The first line is going to be the ticker show in the panel.
+![CryptoTicker settings window](https://raw.githubusercontent.com/Ricx8/cryptoTicker/master/screenshots/screenshot115.png)
 
 ### Tested on:
 - Gnome 3.28.1 (Ubuntu)

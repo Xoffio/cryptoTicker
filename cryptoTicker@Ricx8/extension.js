@@ -73,6 +73,11 @@ const cryptoTicker = new Lang.Class({
       settingFixed.push(currentFixVal);
     }
 
+    // Add the settings button
+    this.menu.addAction("Settings", function(event) {
+      Main.Util.trySpawnCommandLine("gjs /home/"+userName+"/.local/share/gnome-shell/extensions/cryptoTicker@Ricx8/settingsWin/settingWin.js");
+    });
+
   },
 
   _refresh: function () {

@@ -41,7 +41,11 @@ class Application {
 
     // Make the pulldowm for all the coins
     this.tickerPullDowm = new Gtk.ComboBoxText();
-    let tickerList = this._getTickerList();
+    let tickerList = -1;
+    while (tickerList == -1){
+      tickerList = this._getTickerList();
+    }
+
     for (let i=0; i<tickerList.length; i++){
       this.tickerPullDowm.append_text(tickerList[i]);
     }
@@ -125,14 +129,21 @@ class Application {
   }
 
   _getTickerList(){
+    let rTickers = [];
     let sessionSync = new Soup.SessionSync();
     let msg = Soup.Message.new('GET', 'https://api.binance.com/api/v3/ticker/price');
     sessionSync.send_message(msg);
 
-    let tickers = JSON.parse(msg.response_body.data);
-    let rTickers = [];
-    for (let i=0; i<tickers.length; i++){
-      rTickers.push(tickers[i]["symbol"]);
+    if (msg.status_code == 200){
+      let tickers = JSON.parse(msg.response_body.data);
+
+      rTickers.unshift("Select a ticker");
+      for (let i=0; i<tickers.length; i++){
+        rTickers.push(tickers[i]["symbol"]);
+      }
+    }
+    else{
+      rTickers = -1;
     }
 
     return(rTickers);
@@ -149,29 +160,31 @@ class Application {
 
   // Funtion that add ticker to the list
   _addTicker(newTicker=null, newFixVal=null){
-    if ((newTicker == null) || (newFixVal == null)){
+    if ((newTicker == null) || (newFixVal == null) ){
       newFixVal = this.fixVEntry.get_text();
       newTicker = this.tickerPullDowm.get_active_text();
     }
 
-    let tickerInList = false;
-    for(let i=0; i<this.treeTickerList.length; i++){
-      if (this.treeTickerList[i]["coin"] == newTicker){
-        tickerInList = true;
-        break;
+    if (newTicker != "Select a ticker"){
+      let tickerInList = false;
+      for(let i=0; i<this.treeTickerList.length; i++){
+        if (this.treeTickerList[i]["coin"] == newTicker){
+          tickerInList = true;
+          break;
+        }
       }
-    }
 
-    if (!(tickerInList)){
-      let tmpObj = new Object();
-      tmpObj["coin"] = newTicker;
-      tmpObj["toFixed"] = newFixVal;
+      if (!(tickerInList)){
+        let tmpObj = new Object();
+        tmpObj["coin"] = newTicker;
+        tmpObj["toFixed"] = newFixVal;
 
-      if (newFixVal == "0") tmpObj["toFixed"] = "default";
+        if (newFixVal == "0") tmpObj["toFixed"] = "default";
 
-      this.treeTickerList.push( tmpObj );
+        this.treeTickerList.push( tmpObj );
 
-      this.tickerListStore.set(this.tickerListStore.append(), [0, 1], [newTicker, newFixVal]);
+        this.tickerListStore.set(this.tickerListStore.append(), [0, 1], [newTicker, newFixVal]);
+      }
     }
   }
 

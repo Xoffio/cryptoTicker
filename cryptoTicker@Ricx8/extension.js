@@ -84,6 +84,16 @@ const cryptoTicker = new Lang.Class({
 
   // Get the current prices
   _getTheCurrentPrices: function () {
+    /*let sessionSync = new Soup.SessionSync();
+    let msg = Soup.Message.new('GET', 'https://api.binance.com/api/v3/ticker/price');
+    sessionSync.send_message(msg);
+
+    if (msg.status_code == 200){
+
+    }
+    let tickers = JSON.parse(msg.response_body.data);*/
+
+
     let binanceURL = "https://api.binance.com/api/v3/ticker/price";
     let params = { // Empty params to get all symbols
       //symbol: coinConversion[0]
